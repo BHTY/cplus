@@ -184,16 +184,19 @@ def transpile(string):
             finalString += newStatement
 
 
-        if string[i] in objNames:
+        if string[i] in objNames: #add support for accessing/changing variables
             endOfStatement = i
 
             while endOfStatement < len(string):
                 if string[endOfStatement] == ";": break
                 endOfStatement += 1
 
-            #construct new statement - method name is at token two
-            newStatement = ["__{}_{}".format(reference[string[i]], string[i+2]), "(", "&{}".format(string[i])]
-            newStatement += string[(i+4):(endOfStatement+1)]
+            #construct new function statement - method name is at token two
+            if string[i+3] == "(":
+                newStatement = ["__{}_{}".format(reference[string[i]], string[i+2]), "(", "&{}".format(string[i]), ","]
+                newStatement += string[(i+4):(endOfStatement+1)]
+            else:
+                print("accessing object elements is unimplemented and will require a resursive algorithm")
 
             i = endOfStatement
             finalString += newStatement
@@ -206,15 +209,27 @@ def transpile(string):
 
     return finalString
 
-def prettyprint(string):
+def prettyprint_old(string):
     for i in string:
         print(i, end=" ")
         if i == ";" or i == "{" or i == "}": print("")
     return
 
+def prettyprint(string):
+    depth = 0
+    for i in string:
+        print(i, end=" ")
+        
+        if i == "{":
+            depth += 1
+        if i == "}":
+            depth -= 1
+        if i == ";" or i == "}" or i == "{": print("\n" + ("    " * depth), end = "")
+    return
 
 
-string = """class Person{
+string = """
+class Person{
 	char* name;
 	int age;
 
@@ -235,9 +250,36 @@ int main(){
 	Will.hello();
 }"""
 
-newstring = """#import person.cp
+newstring = """#import Person.cp
 int main(){
 	Person Will("Will", 15);
 	Will.hello();
+}
+"""
+
+
+nextstring = """
+class Number{
+    int value;
+
+    void Number(int value){
+        this.value = value;
+    }
+
+    void changeValue(int value){
+        this.value = value;
+    }
+
+    void print(){
+        printf("%d", this.value);
+    }
+}
+
+int main(){
+    Number One(1);
+    One.print();
+    One.changeValue(2);
+    One.print();
+    int num = One.value;
 }
 """
