@@ -85,7 +85,7 @@ def procClass(string):
                     if string[methodHeaderEnding] == "{": break
                     methodHeaderEnding += 1                
 
-                #process header
+                #process header - allow for multi-token return types
                 oldHeader = string[methodHeaderBeginning:methodHeaderEnding]
                 newHeader = [oldHeader[0], "__{}_{}".format(className, string[i+1]),
                             "(", className, "*", "this", ","]
@@ -168,7 +168,7 @@ def transpile(string):
             finalString += classInfo[0]
             classNames.append(classInfo[1])
 
-        if string[i] in classNames:
+        if string[i] in classNames: #recursive algorithm for method calls inside object creation
             endOfStatement = i
             
             while endOfStatement < len(string):
@@ -283,3 +283,29 @@ int main(){
     int num = One.value;
 }
 """
+
+test = """
+class Person{
+	char* name;
+	int age;
+
+	void Person(char* name, int age){
+		this.name = (char*)malloc(strlen(name));
+		strcpy(this.name, name);
+		this.age = age;
+	}
+
+	void hello(){
+		printf("Hello, I'm %s and I'm %d!", this.name, this.age);
+	}
+
+	char getName(){
+            return this.name;
+	}
+
+}
+
+int main(){
+	Person Will("Will", 15);
+	Person Jill(Will.getName(), 15);
+}"""
