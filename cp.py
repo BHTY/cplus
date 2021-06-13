@@ -141,12 +141,10 @@ def preproc(string): ##import directives to include object-oriented code impleme
     
     return newString
 
-def transpile(string):
+def transpile(string, classNames = [], objNames = []):
     string = tokenize(string)
     finalString = []
     i = 0
-    classNames = []
-    objNames = []
     reference = {}
 
     while i < len(string):
@@ -195,19 +193,27 @@ def transpile(string):
             if string[i+3] == "(":
                 newStatement = ["__{}_{}".format(reference[string[i]], string[i+2]), "(", "&{}".format(string[i]), ","]
                 newStatement += string[(i+4):(endOfStatement+1)]
+                i = endOfStatement
+                finalString += newStatement
             else:
-                print("accessing object elements is unimplemented and will require a resursive algorithm")
+                finalString.append(string[i])
 
-            i = endOfStatement
-            finalString += newStatement
+            
         
         else:
             finalString.append(string[i])
         i += 1
+ 
 
-            
+    return finalString#, classNames, objNames
 
-    return finalString
+def toString(lst):
+    string = ""
+
+    for i in lst:
+        string += i
+
+    return string
 
 def prettyprint_old(string):
     for i in string:
@@ -273,6 +279,9 @@ class Number{
     void print(){
         printf("%d", this.value);
     }
+    int getValue(){
+        return this.value;
+    }
 }
 
 int main(){
@@ -280,7 +289,7 @@ int main(){
     One.print();
     One.changeValue(2);
     One.print();
-    int num = One.value;
+    int num = One.value + One.getValue() + One.getValue();
 }
 """
 
