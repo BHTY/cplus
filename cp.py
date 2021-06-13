@@ -141,14 +141,17 @@ def preproc(string): ##import directives to include object-oriented code impleme
     
     return newString
 
-def transpile(string, classNames = [], objNames = []):
+def transpile(string, classNames = [], objNames = [], reference = {}):
     string = tokenize(string)
+    
     finalString = []
     i = 0
-    reference = {}
 
     while i < len(string):
-        if string[i] == "class": #find the end of the class and start PROCESSING
+        #print("{} | {}".format(string[i], i))
+        #print(objNames)
+        
+        if string[i] == "class": #find the end of the class and start PROCESSING            
             oldI = i
             depth = 0
             firstBracket = 0
@@ -165,6 +168,7 @@ def transpile(string, classNames = [], objNames = []):
             classInfo = procClass(string[oldI:i])
             finalString += classInfo[0]
             classNames.append(classInfo[1])
+            continue
 
         if string[i] in classNames: #recursive algorithm for method calls inside object creation
             endOfStatement = i
@@ -180,9 +184,11 @@ def transpile(string, classNames = [], objNames = []):
             newStatement += string[(i+3):endOfStatement+1]
             i = endOfStatement+1
             finalString += newStatement
+            continue
 
 
         if string[i] in objNames: #add support for accessing/changing variables
+            #if i == 142: print("fuck | {} | {} | {}".format(string[i], string[i] in objNames, objNames))
             endOfStatement = i
 
             while endOfStatement < len(string):
@@ -197,23 +203,28 @@ def transpile(string, classNames = [], objNames = []):
                 finalString += newStatement
             else:
                 finalString.append(string[i])
+            continue
 
             
         
-        else:
-            finalString.append(string[i])
+        finalString.append(string[i])
         i += 1
  
 
-    return finalString#, classNames, objNames
+    return finalString#, classNames, objNames, reference
+    
 
-def toString(lst):
-    string = ""
+def toString(string):
+    finalString = ""
+    depth = 0
+    for i in string:
+        finalString += i + " "
 
-    for i in lst:
-        string += i
-
-    return string
+        if i == "{": depth += 1
+        if i == "}": depth -= 1
+        if i == ";" or i == "}" or i == "{": finalString += "\n" + ("    " * depth)
+    return finalString
+    
 
 def prettyprint_old(string):
     for i in string:
@@ -289,7 +300,52 @@ int main(){
     One.print();
     One.changeValue(2);
     One.print();
-    int num = One.value + One.getValue() + One.getValue();
+    int num = One.value + One.getValue();
+    One.value = num;
+    printf("%d\\n", num);
+    One.print();
+}
+"""
+
+quark = """
+class Number{
+    int value;
+
+    void Number(int value){
+        this.value = value;
+    }
+
+    void changeValue(int value){
+        this.value = value;
+    }
+
+    void print(){
+        printf("%d", this.value);
+    }
+    int getValue(){
+        return this.value;
+    }
+}
+
+class Person{
+	char* name;
+	int age;
+
+	void Person(char* name, int age){
+		this.name = (char*)malloc(strlen(name));
+		strcpy(this.name, name);
+		this.age = age;
+	}
+
+	void hello(){
+		printf("Hello, I'm %s and I'm %d!", this.name, this.age);
+	}
+
+}
+
+int main(){
+    Number Fifteen(15);
+    Person Will("Will", Fifteen.getValue());
 }
 """
 
